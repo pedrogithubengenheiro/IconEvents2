@@ -1,6 +1,5 @@
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
-  NAV,
   HERO,
   PRESS,
   ROOM,
@@ -13,16 +12,14 @@ import {
   TESTIMONIALS,
   NICHE,
   CTA,
-  FOOTER,
-  PLACEHOLDER,
   GALLERY,
   MONTAGE,
   HERO_WALL,
 } from "./content.js"
 import { useVoice } from "./voice.jsx"
+import { responsive } from "./lib/img.js"
 import Icon from "./components/Icon.jsx"
 import Photo from "./components/Photo.jsx"
-import QualifierForm from "./components/QualifierForm.jsx"
 import { CtaBrackets } from "./components/CtaButtons.jsx"
 import InTheRoom from "./components/InTheRoom.jsx"
 import Brackets from "./components/Brackets.jsx"
@@ -36,12 +33,9 @@ import Receipts from "./components/Receipts.jsx"
 import Testimonials from "./components/Testimonials.jsx"
 import Niche from "./components/Niche.jsx"
 import Cta from "./components/Cta.jsx"
-
-/* ── Identity ───────────────────────────────────────────────────────── */
-function Logo({ tone = "black", className = "" }) {
-  const src = tone === "white" ? "/logos/IE_logo_white.png" : "/logos/IE_logo_black.png"
-  return <img src={src} alt="Iconic Events — Est. 2017" className={className} />
-}
+import SiteHeader from "./components/SiteHeader.jsx"
+import CtaBand from "./components/CtaBand.jsx"
+import SiteFooter from "./components/SiteFooter.jsx"
 
 // One vertical marquee column for the hero walls. Content is duplicated so the
 // translate loops seamlessly; grayscale keeps the mixed sources cohesive.
@@ -57,8 +51,9 @@ function MarqueeTrack({ images, dir, duration }) {
       {doubled.map((src, i) => (
         <div key={i} className="relative overflow-hidden border border-brass/15">
           <img
-            src={src}
+            {...responsive(src, "(min-width: 1280px) 14vw, 22vw")}
             alt=""
+            loading="lazy"
             className="aspect-[3/4] w-full object-cover [filter:grayscale(1)_contrast(1.05)_brightness(0.85)]"
           />
           <div className="pointer-events-none absolute inset-0 bg-onyx/25" />
@@ -156,32 +151,40 @@ function EasterEggReveal() {
   )
 }
 
-// Nav menu link — echoes the primary button: brass corner ticks snap in on hover.
-function NavLink({ href, children }) {
-  const tick =
-    "pointer-events-none absolute h-1.5 w-1.5 border-brass opacity-0 transition-all duration-300 ease-out group-hover:opacity-100"
-  return (
-    <a href={href} className="group relative px-2 py-1.5 transition-colors duration-300 hover:text-brass">
-      {children}
-      <span className={`${tick} left-1 top-0 border-l border-t group-hover:left-0`} />
-      <span className={`${tick} right-1 top-0 border-r border-t group-hover:right-0`} />
-      <span className={`${tick} bottom-0 left-1 border-b border-l group-hover:left-0`} />
-      <span className={`${tick} bottom-0 right-1 border-b border-r group-hover:right-0`} />
-    </a>
-  )
-}
+/* ── Section switches ───────────────────────────────────────────────────
+   Hidden sections stay in the tree, copy and component intact, so bringing
+   one back is a one-word change. Nothing is deleted. */
 
-function CaseStudyNavPreview() {
-  return (
-    <a
-      href="#work"
-      className="case-study-tab absolute left-1/2 top-full z-50 hidden h-9 min-w-[250px] -translate-x-1/2 items-center justify-center rounded-b-xl bg-brass px-10 font-display text-xs font-bold uppercase tracking-[0.18em] text-onyx shadow-[0_12px_28px_rgba(0,0,0,0.3)] transition hover:brightness-110 md:flex"
-    >
-      Our case studies
-    </a>
-  )
-}
+// The Uncontested Room. Hidden at Iconic's call: it read as a secondary
+// ribbon repeating the call to action that already sits below it.
+const SHOW_NICHE = false
 
+/* Every press logo ships on one 1400x400 canvas with the mark balanced inside
+   it, so the row sets a single height and lets the files carry their own
+   weight. See PRESS in content.js before touching these images. */
+
+// Fires once, when the row first scrolls into view. Same idiom as Scope and
+// Receipts, kept local rather than shared, as they are.
+function useSeen(threshold = 0.25) {
+  const ref = useRef(null)
+  const [seen, setSeen] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setSeen(true)
+          io.disconnect()
+        }
+      },
+      { threshold }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [seen, threshold])
+  return [ref, seen]
+}
 /* ── Layout primitives ──────────────────────────────────────────────── */
 function Section({ id, className = "", children }) {
   return (
@@ -203,46 +206,35 @@ function Eyebrow({ children, dark = false }) {
 }
 
 /* ── Page ───────────────────────────────────────────────────────────── */
+/* A deep link like /#contact arrives before React has rendered, so the browser
+   finds no #contact to jump to and leaves the visitor at the top of a very long
+   page. Anything landing cold on an anchor (a Google Business Profile booking
+   link, an email, a QR code) depends on this running after mount. Re-tries
+   briefly because images above the target still change its offset. */
+function useHashLanding() {
+  useEffect(() => {
+    const id = window.location.hash.slice(1)
+    if (!id) return undefined
+    let frame = 0
+    const settle = () => {
+      const target = document.getElementById(id)
+      if (target) target.scrollIntoView({ block: "start" })
+      frame += 1
+      if (frame < 4) timer = window.setTimeout(settle, 220)
+    }
+    let timer = window.setTimeout(settle, 0)
+    return () => window.clearTimeout(timer)
+  }, [])
+}
+
 export default function App() {
   const { t } = useVoice()
+  const [pressRef, pressSeen] = useSeen()
+  useHashLanding()
   return (
     <div className="min-h-screen bg-onyx text-bone">
 
-      {/* NAV — its own solid-black section. Centered logo, menus split L/R,
-          no CTA. Sticky so it persists on scroll. */}
-      <header className="relative z-40 border-b border-bone/10 bg-onyx md:sticky md:top-0">
-        <div className="nav-beam" aria-hidden="true" />
-        <nav aria-label="Primary navigation" className="mx-auto grid max-w-6xl grid-cols-3 items-center px-5 py-3 sm:px-5 sm:px-6 sm:py-4">
-          <div className="hidden items-center gap-6 font-sans text-xs font-medium uppercase tracking-[0.16em] text-bone/70 md:flex">
-            {NAV.left.map((n) => (
-              <NavLink key={n.href} href={n.href}>
-                {n.label}
-              </NavLink>
-            ))}
-          </div>
-          <a href="#top" aria-label="Iconic Events — home" className="flex justify-center">
-            <Logo tone="white" className="hidden h-8 w-auto md:block" />
-            <img src="/logos/IE_sigil_white.png" alt="" aria-hidden="true" className="h-9 w-auto md:hidden" />
-          </a>
-          <div className="hidden items-center justify-end gap-6 font-sans text-xs font-medium uppercase tracking-[0.16em] text-bone/70 md:flex">
-            {NAV.right.map((n) => (
-              <NavLink key={n.href} href={n.href}>
-                {n.label}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-        <CaseStudyNavPreview />
-      </header>
-      <nav aria-label="Mobile navigation" className="mobile-nav sticky top-0 z-40 max-w-full overflow-x-auto border-y border-bone/10 bg-onyx/95 px-3 backdrop-blur md:hidden">
-        <div className="flex min-w-max items-center">
-          {[...NAV.left, ...NAV.right].map((n) => (
-            <a key={n.href} href={n.href} className="flex min-h-11 items-center px-3 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-bone/70">
-              {n.label}
-            </a>
-          ))}
-        </div>
-      </nav>
+      <SiteHeader home />
       {/* ── 01 · HERO ─────────────────────────────────────────────────── */}
       <div id="top" />
       <div className="relative grid min-h-screen grid-cols-1 overflow-hidden bg-onyx md:grid-cols-[22vw_1fr_22vw] xl:grid-cols-[28vw_1fr_28vw]">
@@ -335,10 +327,7 @@ export default function App() {
           key={t({ iconic: "i", genflow: "g" })}
           className="fade-rise relative z-10 flex min-h-screen flex-col items-center justify-center px-5 sm:px-6 py-28 text-center"
         >
-          <p className="font-sans text-xs uppercase tracking-[0.25em] text-brass">
-            {t(HERO.audience)} <span className="text-bone/45">· {HERO.est}</span>
-          </p>
-          <h1 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.96] tracking-tight text-bone sm:text-[3.5rem]">
+          <h1 className="max-w-4xl font-serif text-5xl font-semibold leading-[0.96] tracking-tight text-bone sm:text-[3.5rem]">
             {heroHeadline(t(HERO.headline))}
           </h1>
           <p className="mx-auto mt-6 max-w-xl font-sans text-lg leading-relaxed text-bone/70">
@@ -382,15 +371,24 @@ export default function App() {
         <p className="text-center font-sans text-xs uppercase tracking-[0.25em] text-bone/40">
           {t(PRESS.label)}
         </p>
-        {/* TODO: swap these text placeholders for the official mono/white logo
-            files once provided (drop them in /public/images/press). */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-          {PRESS.logos.map((l) => (
+        <div
+          ref={pressRef}
+          className="mt-5 flex flex-wrap items-center justify-center gap-x-1 gap-y-1 sm:gap-x-2"
+        >
+          {PRESS.logos.map((l, i) => (
             <span
-              key={l}
-              className="font-serif text-lg text-bone/25 transition-colors duration-300 hover:text-bone/50"
+              key={l.name}
+              className={`inline-flex ${pressSeen ? "logo-rise" : "opacity-0"}`}
+              style={pressSeen ? { animationDelay: `${i * 100}ms` } : undefined}
             >
-              {l}
+              <img
+                width={l.w}
+                height={l.h}
+                {...responsive(l.src, "200px")}
+                alt={l.name}
+                loading="lazy"
+                className="h-10 w-auto opacity-50 transition-opacity duration-300 hover:opacity-90 sm:h-12"
+              />
             </span>
           ))}
         </div>
@@ -399,69 +397,50 @@ export default function App() {
       {/* ── The Room, In Motion ──────────────────────────────────────────── */}
       <Motion />
 
-      {/* ── 03 · IN THE ROOM — roster index with project reveal ──────────── */}
-      <InTheRoom />
+      {/* Order below answers a prospect's questions in the order they ask
+          them: who you are, whether you are for them, what is and is not in
+          scope, how you do it, whether it works, and what it looked like.
+          Every component is unchanged; only the sequence and the calls to
+          action are new. */}
 
-      {/* ── 04 · POSITIONING — Immersive Annotated Room ──────────────────── */}
+      {/* ── WHO WE ARE ──────────────────────────────────────────────────── */}
       <Position />
 
-      {/* ── 05 · SELECTED WORK — Poster Grid ─────────────────────────────── */}
+      {/* ── WHO IT IS FOR — moved ahead of the offer: naming who we are not
+             for qualifies the reader before we explain anything. Currently
+             hidden; see SHOW_NICHE above. ──────────────────────────────── */}
+      {SHOW_NICHE && <Niche />}
+
+      {/* ── WHAT IS AND IS NOT INCLUDED ─────────────────────────────────── */}
+      <Scope />
+
+      <CtaBand
+        headline="Tell us about the room you want to build."
+        secondary={{ href: "/case-studies", label: "See all 37 case studies →" }}
+      />
+
+      {/* ── HOW WE DO IT ────────────────────────────────────────────────── */}
+      <Method />
+
+      {/* ── PROOF — the numbers, and only the numbers. The founder portraits
+             and the testimonial cards came out: with Selected Work and the
+             gallery below, the page was carrying five proof sections. The
+             client's own words now live on the case study pages, one per
+             event, where they belong to something ─────────────────────── */}
+      <Receipts />
+
+      <CtaBand headline="Six figures of production, one accountable team." />
+
+      {/* ── SELECTED WORK — a teaser now that /case-studies carries the
+             full index ────────────────────────────────────────────────── */}
       <Work />
 
       <Gallery />
 
-      {/* ── 07 · SCOPE OF SERVICE — manifesto headline + included/excluded diptych ── */}
-      <Scope />
-
-      {/* ── 08 · METHODOLOGY — Phase Selector (locked in) ──────────────── */}
-      <Method />
-
-      {/* ── 09 · RECEIPTS — Oversized Rows (locked in) ─────────────────── */}
-      <Receipts />
-
-      {/* ── 10 · FROM THE HOST — Cinematic Quote Cards (locked in) ─────── */}
-      <Testimonials />
-
-      {/* ── 11 · THE UNCONTESTED ROOM — full-height black close ────────── */}
-      <Niche />
-
-      {/* ── 12 · START A CONVERSATION — The Brief (locked in) ──────────── */}
+      {/* ── START A CONVERSATION — The Brief (locked in) ────────────────── */}
       <Cta />
 
-      {/* ── FOOTER ────────────────────────────────────────────────────── */}
-      <footer className="rule-tidepool relative border-t border-bone/10 bg-onyx">
-        <Section className="py-14">
-          <div className="grid grid-cols-2 gap-x-6 gap-y-10 border-b border-bone/10 pb-10 md:grid-cols-[1.5fr_1fr_1fr_1fr] md:gap-10">
-            <div className="col-span-2 text-center md:col-span-1 md:text-left">
-              <Logo tone="white" className="mx-auto h-14 w-auto md:mx-0 md:h-9" />
-              <p className="mx-auto mt-4 max-w-xs font-sans text-sm text-bone/55 md:mx-0">{t(FOOTER.line)}</p>
-            </div>
-            {FOOTER.columns.map((c) => (
-              <div key={c.id} className="min-w-0">
-                <div className="font-sans text-xs font-bold uppercase tracking-[0.18em] text-brass">
-                  {c.head}
-                </div>
-                <ul className="mt-4 space-y-2 break-words font-sans text-sm leading-relaxed text-bone/60">
-                  {c.items.map((it) => (
-                    <li key={it}>{it}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 grid grid-cols-2 items-start gap-4 md:flex md:items-center md:justify-between">
-            <p className="font-sans text-[10px] uppercase leading-relaxed tracking-[0.14em] text-bone/50 md:text-xs md:tracking-[0.2em]">
-              {FOOTER.legal} · {FOOTER.tagStrip}
-            </p>
-            <p className="text-right font-sans text-[10px] uppercase leading-relaxed tracking-[0.12em] text-footer-grey md:text-left md:text-[11px] md:tracking-[0.15em]">
-              Privacy · Terms
-            </p>
-          </div>
-          <p className="mt-6 max-w-3xl font-sans text-[11px] leading-relaxed text-footer-grey">
-            {FOOTER.ip}
-          </p>
-        </Section>
-      </footer>
+      <SiteFooter home />
     </div>
   )
 }

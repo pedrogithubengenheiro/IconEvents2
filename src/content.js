@@ -11,6 +11,7 @@
 // RULE: change any line → change BOTH sides of its V() pair, each true to its
 // own voice guide. Plain strings (no V) are voice-neutral (names, numbers).
 
+
 const V = (iconic, genflow) => ({ iconic, genflow })
 
 export const VOICES = {
@@ -20,7 +21,6 @@ export const VOICES = {
 
 export const DEFAULT_VOICE = "iconic"
 
-export const PLACEHOLDER = "/images/placeholder.png"
 
 // Event-atmosphere photography (backgrounds & montages only — never labelled
 // as a specific client or case study).
@@ -35,6 +35,11 @@ export const GALLERY = {
   nicheBg: "/images/gallery/uncontested-room.webp",
   ctaImg: g(22),
   positionRoom: "/images/gallery/position-room.webp",
+  // The same frame at 960w. Used where it is a CSS background, which cannot
+  // take a srcset, and where it sits under two gradient overlays so the
+  // detail is invisible anyway. Sharing the file with the <img> variants
+  // means the browser fetches it once rather than twice.
+  positionRoomWide: "/images/gallery/position-room-960.webp",
   motionWall: [g(8), g(9), g(28), g(31), g(3), g(35), g(23), g(30), g(13), g(19)],
 }
 
@@ -58,21 +63,42 @@ export const MONTAGE = {
 
 /* ── NAV ──────────────────────────────────────────────────────────────── */
 // Centered-logo navigation: a few menus on each side, no CTA.
+/* Follows the page in scroll order, left to right. Labels say what the
+   section is rather than naming it: "Proof" and "Voices" told a prospect
+   nothing, and "Voices" pointed at the testimonial section that no longer
+   exists. Every href below resolves to a real id on the page. */
 export const NAV = {
   left: [
-    { href: "#work", label: "Work" },
-    { href: "#gallery", label: "Gallery" },
+    { href: "#scope", label: "Services" },
     { href: "#method", label: "Method" },
+    // A real page, not an anchor, and the only one marked smallOnly: the
+    // brass tab above the header covers this from md up, so showing it in
+    // the bar too would be the same destination twice. Below md the tab is
+    // hidden, and this takes over.
+    { href: "/case-studies", label: "Case Studies", smallOnly: true },
   ],
   right: [
-    { href: "#receipts", label: "Proof" },
-    { href: "#testimonials", label: "Voices" },
-    { href: "#contact", label: "Contact" },
+    { href: "#work", label: "Work" },
+    // Its own page now. The homepage keeps its gallery section, but the nav
+    // goes to the full set, where every photo links to its case study.
+    { href: "/gallery", label: "Gallery" },
+    {
+      href: "#contact",
+      label: "Contact",
+      // Opens a menu rather than jumping straight to the form, because there
+      // are two ways in now and they are for different people.
+      children: [
+        { href: "#contact", label: "Start a conversation", note: "Tell us about the room you want to build." },
+        { href: "/vendors", label: "Vendor sign-up", note: "Crew, kit and suppliers. Join the list we work from." },
+      ],
+    },
   ],
 }
 
 /* ── 01 · HERO ────────────────────────────────────────────────────────── */
 export const HERO = {
+  // Kept, not rendered. The audience line and the est. mark came out of the
+  // hero at Iconic's call; the copy stays here in case either returns.
   audience: V("For founder-led businesses past $1M", "For founders scaling past $1M"),
   est: "Est. 2017",
   headline: V(
@@ -80,8 +106,8 @@ export const HERO = {
     "More than $100M moves through the events we manage each year."
   ),
   subhead: V(
-    "Through psychology-led stage design, production, and experience architecture.",
-    "Through psychology-driven stage design, production, and experience architecture."
+    "Through psychology-led stage design, production, and experience architecture for live in person events.",
+    "Through psychology-led stage design, production, and experience architecture for live in person events."
   ),
   outcome: V(
     "$1.8M from a single room of 150. That is the room we build.",
@@ -95,7 +121,27 @@ export const HERO = {
 /* ── 02 · PRESS ───────────────────────────────────────────────────────── */
 export const PRESS = {
   label: V("As trusted by", "Trusted by"),
-  logos: ["BizBash", "Event Marketer", "Forbes", "Entrepreneur", "Palms", "HMS Belfast", "T&C Las Vegas"],
+  // Every file ships on the same 1400x400 canvas, bone on transparent, the
+  // logo optically balanced inside it: a long wordmark set smaller, a stacked
+  // mark larger. That padding is the balancing, so the row sets one height for
+  // all of them and the files decide their own weight.
+  //
+  // Keep new logos on the same canvas, and do not trim them. Trimming would
+  // throw the balancing away and put a long wordmark back to the same height
+  // as a square mark, which reads wrong.
+  logos: [
+    { name: "7th Level", src: "/images/press/7th-level.webp", w: 1400, h: 400 },
+    { name: "Commas", src: "/images/press/commas.webp", w: 1400, h: 400 },
+    { name: "Scaling With Systems", src: "/images/press/scaling-with-systems.webp", w: 1400, h: 400 },
+    // Re-canvassed here to match the set, pending a supplied version.
+    { name: "Shelby Sapp's Women & Wealth", src: "/images/press/women-and-wealth.webp", w: 1400, h: 400 },
+    { name: "NetRevenue", src: "/images/press/netrevenue.webp", w: 1400, h: 400 },
+    { name: "Closers.io", src: "/images/press/closers-io.webp", w: 1400, h: 400 },
+  ],
+  // Kept, not rendered. The row ran on these names before the logo files
+  // arrived. They are press mentions and venues rather than clients, so if
+  // they come back they probably want a row and a label of their own.
+  retired: ["BizBash", "Event Marketer", "Forbes", "Entrepreneur", "Palms", "HMS Belfast", "T&C Las Vegas"],
 }
 
 /* ── 03 · PORTRAIT CAROUSEL — In the Room ─────────────────────────────── */
@@ -172,7 +218,7 @@ export const ROOM = {
 
 /* ── 04 · POSITIONING ─────────────────────────────────────────────────── */
 export const POSITION = {
-  eyebrow: "01 · Position",
+  eyebrow: "Position",
   title: V("Not event planners. Experience engineers.", "Not event planners. Experience engineers."),
   body: V(
     "Every element of a room is a lever — stage, light, cadence, the physics of the space. We move an audience from seated to decided.",
@@ -191,11 +237,12 @@ export const POSITION = {
 
 /* ── 05 · SELECTED WORK ───────────────────────────────────────────────── */
 export const WORK = {
-  eyebrow: "02 · Selected Work",
+  eyebrow: "Selected Work",
   title: V("Rooms we've engineered.", "Rooms we've engineered."),
   index: V("Full Index →", "Full Index →"),
   featured: {
-    label: "Featured · Case 001",
+    slug: "casino-royale",
+    label: "Featured",
     meta: "Ben Newman · Palms Casino Resort · 2023",
     img: "/images/gallery/g9.webp",
     headline: V("Casino Royale, built to sell from the stage.", "Casino Royale — built to sell from the stage."),
@@ -218,17 +265,17 @@ export const WORK = {
   },
   archiveLabel: V("More from the archive", "More from the archive"),
   archive: [
-    { id: "a1", img: "/images/gallery/g28.webp", name: "Bad After Dark", result: V("$146K sponsorships", "$146K sponsorships") },
-    { id: "a2", img: "/images/gallery/g13.webp", name: "The CEO Lawyer Summit", result: V("$25K+ average ticket", "$25K+ avg ticket") },
-    { id: "a3", img: "/images/gallery/g26.webp", name: "Scaling With Systems LIVE", result: V("Founder-led live summit", "Founder-led live summit") },
-    { id: "a4", img: "/images/gallery/g3.webp", name: "Viral Ecom Adz", result: V("Six-figure sponsorship", "6-figure sponsorship") },
-    { id: "a5", img: "/images/gallery/g30.webp", name: "Chase Hughes — London", result: V("HMS Belfast build", "HMS Belfast build") },
+    { id: "a1", img: "/images/gallery/g28.webp", name: "Bad After Dark", slug: "bad-after-dark", result: V("$146K sponsorships", "$146K sponsorships") },
+    { id: "a2", img: "/images/gallery/g13.webp", name: "The CEO Lawyer Summit", slug: "ceo-lawyer-summit", result: V("$25K+ average ticket", "$25K+ avg ticket") },
+    { id: "a3", img: "/images/gallery/g26.webp", name: "Scaling With Systems LIVE", slug: "scaling-with-systems-live", result: V("Founder-led live summit", "Founder-led live summit") },
+    { id: "a4", img: "/images/gallery/g3.webp", name: "Viral Ecom Adz", slug: "viral-ecom-adz", result: V("Six-figure sponsorship", "6-figure sponsorship") },
+    { id: "a5", img: "/images/gallery/g30.webp", name: "Chase Hughes — London", slug: "chase-hughes-london", result: V("HMS Belfast build", "HMS Belfast build") },
   ],
 }
 
 /* ── 06 · SERVICES (green full-bleed) ─────────────────────────────────── */
 export const SERVICES = {
-  eyebrow: "03 · Capability",
+  eyebrow: "Capability",
   title: V("Five disciplines. One authored room.", "Five disciplines. One room, fully built."),
   intro: V(
     "Every service directed in-house. We hold creative authority end to end.",
@@ -310,7 +357,7 @@ export const SERVICES = {
 
 /* ── 07 · SCOPE OF SERVICE ────────────────────────────────────────────── */
 export const SCOPE = {
-  eyebrow: "04 · Scope of Service",
+  eyebrow: "Scope of Service",
   title: V("Everything we do. Everything we don't.", "Everything we do. Everything we don't."),
   // Exact client copy — voice-neutral, verbatim in both voices.
   doHead: "What we do",
@@ -403,7 +450,7 @@ export const SCOPE = {
 
 /* ── 08 · METHODOLOGY ─────────────────────────────────────────────────── */
 export const METHOD = {
-  eyebrow: "05 · Methodology",
+  eyebrow: "Methodology",
   title: V("The Iconic Standard.", "The Iconic Standard."),
   sub: V(
     "Five phases, one operating system, applied to every room.",
@@ -455,7 +502,7 @@ export const METHOD = {
 
 /* ── 09 · RECEIPTS ────────────────────────────────────────────────────── */
 export const RECEIPTS = {
-  eyebrow: "06 · Receipts",
+  eyebrow: "Receipts",
   title: V("The only numbers that matter.", "The only numbers that matter."),
   stats: [
     { id: "n1", value: "$1.8M", img: "/images/gallery/g32.webp", label: V("membership, from 150 seats", "membership from 150 seats") },
@@ -467,7 +514,7 @@ export const RECEIPTS = {
 
 /* ── 10 · VIDEO TESTIMONIALS ──────────────────────────────────────────── */
 export const TESTIMONIALS = {
-  eyebrow: "07 · From the Host",
+  eyebrow: "From the Host",
   title: V("They sold from our rooms. Hear them say so.", "They sold from our rooms. Hear it from them."),
   items: [
     { id: "t1", img: "/images/clients/ben-newman.webp", duration: "00:42", name: "Ben Newman", role: V("Palms Casino Resort", "Palms Casino Resort"), quote: V("“The room did what a year of marketing couldn't.”", "“The room did what a year of marketing couldn't.”") },
@@ -478,7 +525,7 @@ export const TESTIMONIALS = {
 
 /* ── 11 · NICHE (green full-bleed close) ──────────────────────────────── */
 export const NICHE = {
-  eyebrow: "08 · The Uncontested Room",
+  eyebrow: "The Uncontested Room",
   title: V("Built for founders. Not for brands.", "Built for founders. Not for brands."),
   body: V(
     "Every major experience agency chases Fortune 500 budgets. We do not. We engineer live events for coaches, creators, and founder-led businesses — operators who need the room to produce revenue, not applause. No one else builds for it. It is the only room we build.",
@@ -489,11 +536,11 @@ export const NICHE = {
 
 /* ── 12 · CTA FORM ────────────────────────────────────────────────────── */
 export const CTA = {
-  eyebrow: "09 · Start a Conversation",
+  eyebrow: "Start a Conversation",
   title: V("Tell us about the room you want to build.", "Tell us about the room you want to build."),
   formLead: V(
-    "Answer the three questions below and a senior director will take it from there.",
-    "Answer the three questions below and a senior director will take it from there — no pitch decks, just the conversation."
+    "A minute of answers, and a senior director will take it from there.",
+    "A minute of answers, and a senior director will take it from there. No pitch decks, just the conversation."
   ),
   stats: [
     { id: "c1", value: "30", label: V("minutes with a senior director", "minutes with a senior director") },
@@ -501,25 +548,32 @@ export const CTA = {
     { id: "c3", value: "0", label: V("pitch decks — just the conversation", "pitch decks — just the conversation") },
   ],
   form: {
-    stageLabel: V("Your business stage", "Your business stage"),
-    stages: ["Under $1M", "$1M–$5M", "$5M–$25M", "$25M+"],
-    timingLabel: V("When is the room?", "When is the room?"),
-    timings: ["Next 3 months", "3–6 months", "6–12 months", "Exploring"],
-    outcomeLabel: V("What outcome are you engineering?", "What outcome are you engineering?"),
-    outcomePlaceholder: V(
-      "The result the room has to produce.",
-      "The result you need the room to drive.",
+    /* Every choice is required and none is pre-selected, so an answer in the
+       inbox is always one the visitor actually picked. */
+    eventLabel: "What's the event?",
+    events: [
+      "Client summit or conference",
+      "Launch",
+      "Retreat or mastermind",
+      "Customer or VIP event",
+      "Not sure yet",
+    ],
+    guestsLabel: "How many guests?",
+    guests: ["Under 50", "50 to 150", "150 to 500", "500+"],
+    budgetLabel: "Event budget",
+    budgets: ["Under $50k", "$50k to $150k", "$150k to $500k", "$500k+", "I don't know yet"],
+    timingLabel: "When is the room?",
+    timings: ["Within 3 months", "3 to 6 months", "6 to 12 months", "Just exploring"],
+    notesLabel: "Anything else we should know?",
+    notesPlaceholder: V(
+      "What the room has to achieve, where you need support, what is already in place.",
+      "What the room needs to do, where you need a hand, what's already sorted."
     ),
     submit: V("Start a conversation", "Book the call"),
     sending: V("Sending…", "Locking it in…"),
     reassurance: V(
       "We respond within 48 hours. If we are not the right fit, we will tell you on the first call.",
       "We respond within 48 hours. If we're not the right fit, we'll tell you on the first call."
-    ),
-    successTitle: V("Received. A director will write within 48 hours.", "You're in. A director replies within 48 hours."),
-    successBody: V(
-      "Watch {email} for the reply. If we are not the right fit, we will say so first.",
-      "Watch {email} — that's where the reply lands. If we're not the fit, we'll say so first."
     ),
   },
 }
@@ -528,9 +582,44 @@ export const CTA = {
 export const FOOTER = {
   line: V("Experience engineers. Est. 2017.", "Experience engineers for the creator economy. Est. 2017."),
   columns: [
-    { id: "col1", head: "Studio", items: ["Work", "Services", "Method", "Journal"] },
-    { id: "col2", head: "Contact", items: ["icon@iconicevents.com", "(305) 791-5290", "Miami · Las Vegas"] },
-    { id: "col3", head: "Follow", items: ["Instagram", "LinkedIn", "Vimeo"] },
+    // Every item that names a page or section links to it. Sections are
+    // anchors on the homepage, the only page this footer appears on.
+    {
+      id: "col1",
+      head: "Explore",
+      items: [
+        { label: "Work", href: "#work" },
+        { label: "Services", href: "#scope" },
+        { label: "Method", href: "#method" },
+        { label: "Case Studies", href: "/case-studies" },
+        { label: "Gallery", href: "/gallery" },
+      ],
+    },
+    {
+      id: "col2",
+      head: "Contact",
+      // The address is deliberately not printed here: a mailto in the footer of
+      // every page is the easiest thing on the site to scrape. The form reaches
+      // the same inbox. CONTACT_EMAIL is still the fallback when a submission
+      // fails (see src/lib/enquiry.js).
+      items: [
+        { label: "Start a conversation", href: "#contact" },
+        { label: "Vendor sign-up", href: "/vendors" },
+        { label: "(305) 791-5290", href: "tel:+13057915290" },
+        "Miami · Las Vegas",
+      ],
+    },
+    // Iconic's company profiles, the same as sameAs in index.html. Vimeo was
+    // listed here with no link and no account found, so it came out.
+    {
+      id: "col3",
+      head: "Follow",
+      items: [
+        { label: "Instagram", href: "https://www.instagram.com/iconicbecker", external: true },
+        { label: "LinkedIn", href: "https://www.linkedin.com/company/iconiceventsusa", external: true },
+        { label: "YouTube", href: "https://www.youtube.com/@iconiceventsUSA", external: true },
+      ],
+    },
   ],
   tagStrip: "ICONIC · EXPERIENCE · ENGINEERED",
   legal: "© 2026 Iconic Events LLC",

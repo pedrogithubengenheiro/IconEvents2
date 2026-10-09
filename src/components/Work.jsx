@@ -1,4 +1,5 @@
 import { WORK } from "../content.js"
+import { responsive } from "../lib/img.js"
 import { useVoice } from "../voice.jsx"
 import Brackets from "./Brackets.jsx"
 import SpreadParticles from "./SpreadParticles.jsx"
@@ -18,7 +19,7 @@ export default function Work() {
       {/* background — event image + colour overlay + brand pattern */}
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <img
-          src="/images/gallery/position-room.webp"
+          {...responsive("/images/gallery/position-room.webp", "100vw")}
           alt=""
           className="h-full w-full object-cover opacity-[0.12] grayscale"
         />
@@ -36,8 +37,8 @@ export default function Work() {
       </div>
       <div className="flex flex-wrap items-baseline justify-between gap-4">
         <h2 className="font-serif text-4xl font-semibold text-bone sm:text-5xl">{t(WORK.title)}</h2>
-        <a href="#gallery" className="font-sans text-xs uppercase tracking-[0.15em] text-brass hover:text-bone">
-          {t(WORK.index)}
+        <a href="/case-studies" className="font-sans text-xs uppercase tracking-[0.15em] text-brass hover:text-bone">
+          All 37 case studies →
         </a>
       </div>
 
@@ -45,7 +46,7 @@ export default function Work() {
         {/* featured poster */}
         <div className="group relative min-h-[78svh] overflow-hidden border border-brass/25 md:min-h-0 md:col-span-2 lg:row-span-2">
           <img
-            src={f.img}
+            {...responsive(f.img, "(min-width: 768px) 60vw, 100vw")}
             alt=""
             className="absolute inset-0 h-full min-h-[340px] w-full object-cover grayscale md:relative transition-all duration-700 ease-out group-hover:scale-[1.03] group-hover:grayscale-0"
           />
@@ -68,21 +69,23 @@ export default function Work() {
                 </div>
               ))}
             </div>
-            <a href="/case-studies/casino-royale" className="mt-5 inline-block font-sans text-xs uppercase tracking-[0.15em] text-brass hover:text-bone">
+            <a href={`/case-studies/${f.slug}`} className="mt-5 inline-block font-sans text-xs uppercase tracking-[0.15em] text-brass hover:text-bone">
               {t(f.cta)}
             </a>
           </div>
         </div>
 
         {/* archive poster cards */}
-        {WORK.archive.map((a) => (
+        {/* A teaser now that /case-studies carries all 37. Featured poster plus two,
+            rather than the full archive, which ran to nearly five phone screens. */}
+        {WORK.archive.slice(0, 2).map((a) => (
           <a
             key={a.id}
-            href="/case-studies/casino-royale"
+            href={`/case-studies/${a.slug}`}
             className="group relative flex min-h-[72svh] flex-col justify-end overflow-hidden border border-bone/15 md:min-h-[210px] transition-colors duration-300 hover:border-brass/40"
           >
             <img
-              src={a.img}
+              {...responsive(a.img, "(min-width: 768px) 30vw, 50vw")}
               alt=""
               loading="lazy"
               className="absolute inset-0 h-full w-full object-cover grayscale transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"

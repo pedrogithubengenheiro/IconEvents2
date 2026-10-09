@@ -7,61 +7,61 @@
 /* Cormorant Garamond */
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-Regular.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-Regular.woff2") format("woff2");
   font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-Italic.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-Italic.woff2") format("woff2");
   font-weight: 400; font-style: italic; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-Medium.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-Medium.woff2") format("woff2");
   font-weight: 500; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-MediumItalic.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-MediumItalic.woff2") format("woff2");
   font-weight: 500; font-style: italic; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-SemiBold.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-SemiBold.woff2") format("woff2");
   font-weight: 600; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-SemiBoldItalic.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-SemiBoldItalic.woff2") format("woff2");
   font-weight: 600; font-style: italic; font-display: swap;
 }
 @font-face {
   font-family: "Cormorant Garamond";
-  src: url("/fonts/CormorantGaramond-Bold.ttf") format("truetype");
+  src: url("/fonts/CormorantGaramond-Bold.woff2") format("woff2");
   font-weight: 700; font-style: normal; font-display: swap;
 }
 
 /* Helvetica */
 @font-face {
   font-family: "Helvetica";
-  src: url("/fonts/Helvetica.ttf") format("truetype");
+  src: url("/fonts/Helvetica.woff2") format("woff2");
   font-weight: 400; font-style: normal; font-display: swap;
 }
 @font-face {
   font-family: "Helvetica";
-  src: url("/fonts/Helvetica-Oblique.ttf") format("truetype");
+  src: url("/fonts/Helvetica-Oblique.woff2") format("woff2");
   font-weight: 400; font-style: italic; font-display: swap;
 }
 @font-face {
   font-family: "Helvetica";
-  src: url("/fonts/Helvetica-Bold.ttf") format("truetype");
+  src: url("/fonts/Helvetica-Bold.woff2") format("woff2");
   font-weight: 700; font-style: normal; font-display: swap;
 }
 
 /* Causten — reserved for all-caps poster moments (never body copy). */
 @font-face {
   font-family: "Causten";
-  src: url("/fonts/Causten-Bold.otf") format("opentype");
+  src: url("/fonts/Causten-Bold.woff2") format("woff2");
   font-weight: 700; font-style: normal; font-display: swap;
 }
 
@@ -119,6 +119,23 @@ body {
 
 .fade-rise {
   animation: fade-rise 0.8s ease-out both;
+}
+
+/* Trusted-by logos: each one rises out of focus as the row comes into view,
+   a tenth of a second behind the last. Same family as fade-rise, slower, with
+   the focus pull. The animation runs on a wrapper, not the image, so it does
+   not fight the resting opacity. */
+@keyframes logo-rise {
+  from { opacity: 0; transform: translateY(20px); filter: blur(12px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+}
+
+.logo-rise {
+  animation: logo-rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-rise { animation: none; opacity: 1; }
 }
 
 /* Nav border beam — a faint brass highlight travelling left→right along the
@@ -525,13 +542,9 @@ body {
   .scope-strike { white-space: normal; }
   #method [class*="min-h-[520px]"] { min-height: 0; padding-bottom: 5rem; }
 
-  /* Forms stack instead of squeezing a joined desktop control. */
+  /* The brief tightens up on small screens. */
   #contact { min-height: auto; padding-top: 4rem; padding-bottom: 4rem; }
   #contact form { padding: 1.25rem; }
-  #contact form > p { font-size: 1.5rem; line-height: 1.7; }
-  #contact form > div.flex { flex-direction: column; gap: .75rem; }
-  #contact form > div.flex input { min-height: 3rem; border-right-width: 1px; }
-  #contact form > div.flex button { min-height: 3rem; justify-content: center; width: 100%; }
 }
 
 @media (max-width: 389px) {
@@ -548,4 +561,22 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* /gallery: frames rise into place as they scroll into view. Driven by the
+   scroll position itself, so anything already on screen at load is simply
+   there, and a browser without scroll-driven animations shows the plain
+   grid. Nothing ever waits at opacity 0 for a script. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .bento-tile {
+      animation: bento-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+@keyframes bento-rise {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+  to { opacity: 1; transform: none; }
 }
